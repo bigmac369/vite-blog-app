@@ -4,7 +4,7 @@ const Navbar = () => {
   return (
     <nav className=" border bg-gray-100 flex p-4">
       <NavLink to="/">Logo nav</NavLink>
-      <div className="flex gap-4 ml-auto mr-4 ">
+      <div className="gap-4 ml-auto mr-4 sm:flex hidden">
         <NavLink
           to="/"
           end
