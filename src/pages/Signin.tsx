@@ -1,9 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import {
+  loginStart,
+  loginSuccess,
+  loginFailure,
+} from "../features/user/userSlice";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useNavigate } from "react-router";
 
 const SigninForm = () => {
-  const [email, setEmail] = useState("");
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
+  // ✅ Only for detecting login success
+  const user = useAppSelector((state) => state.user.user);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -18,16 +36,22 @@ const SigninForm = () => {
     e.preventDefault();
     // Handle signup logic here, e.g., send data to the server
     try {
+      dispatch(loginStart());
       const response = await axios.post(
         "http://localhost:5000/api/v1/auth/sign-in",
         { email, password }
       );
-      console.log("Signup success:", response.data);
+      dispatch(loginSuccess(response.data));
+      navigate("/");
+
+      console.log("Signin success:", response.data.data.user);
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("Signup error:", error.response?.data || error.message);
+        const errorMessage = error.response?.data?.message || error.message;
+        dispatch(loginFailure(errorMessage));
+        console.error("Signin error:", errorMessage);
       } else {
-        console.error("Signup error:", error);
+        console.error("Signin error:", error);
       }
     }
   };

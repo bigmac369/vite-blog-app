@@ -84,7 +84,7 @@ const SignupForm = () => {
           <div className="text-center mt-3">
             <p className="text-sm">
               Already have an account?{" "}
-              <a href="/signup" className="text-blue-500 hover:text-blue-700">
+              <a href="/signin" className="text-blue-500 hover:text-blue-700">
                 Log in
               </a>
             </p>
