@@ -39,8 +39,16 @@ const SigninForm = () => {
       dispatch(loginStart());
       const response = await axios.post(
         "http://localhost:5000/api/v1/auth/sign-in",
-        { email, password }
+        { email, password },
+        {
+          withCredentials: true, // Ensure cookies are sent with the request
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
       );
+      console.log("Response data:", response.data);
+      // localStorage.setItem("token", response.data.data.token);
       dispatch(loginSuccess(response.data));
       navigate("/");
 
