@@ -4,6 +4,7 @@ import SignupForm from "./pages/Signup";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import CreatePost from "./pages/CreatePost";
+import SingleBlog from "./pages/SingleBlog";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/signin" element={<SigninForm />} />
           <Route path="/signup" element={<SignupForm />} />
           <Route path="/create" element={<CreatePost />} />
+          <Route path="/post/:id" element={<SingleBlog />} />
         </Routes>
       </Router>
     </>

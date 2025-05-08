@@ -1,6 +1,7 @@
 import BlogPost from "../components/BlogPost";
 import SearchBlog from "../components/SearchBlog";
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 
 const Blogs = () => {
   const [posts, setPosts] = useState([]);
@@ -39,11 +40,15 @@ const Blogs = () => {
         <BlogPost />
       </div>
       {posts.map((post) => (
-        <div key={post._id} className="bg-white p-4 rounded shadow-md mb-4">
+        <Link
+          key={post._id}
+          to={`/post/${post._id}`}
+          className="bg-white p-4 rounded shadow-md mb-4 block"
+        >
           <h2 className="text-xl font-bold">{post.title}</h2>
           <p>{post.summary}</p>
           <p>{post.content}</p>
-        </div>
+        </Link>
       ))}
     </div>
   );
