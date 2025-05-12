@@ -42,6 +42,7 @@ const CreatePost = () => {
       );
       console.log("Post created successfully:", res);
       setValue(""); // Clear the editor after successful submission
+      
     } catch (error) {
       console.error("Error creating post:", error);
     }

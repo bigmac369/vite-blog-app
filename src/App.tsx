@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import CreatePost from "./pages/CreatePost";
 import SingleBlog from "./pages/SingleBlog";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -15,8 +16,17 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/signin" element={<SigninForm />} />
           <Route path="/signup" element={<SignupForm />} />
-          <Route path="/create" element={<CreatePost />} />
+          <Route
+            path="/create"
+            element={
+              <ProtectedRoute>
+                <CreatePost />
+              </ProtectedRoute>
+            }
+          />
+          {/* <Route path="/create" element={<CreatePost />} /> */}
           <Route path="/post/:id" element={<SingleBlog />} />
+          <Route path="*" element={<p>There's nothing here: 404!</p>} />
         </Routes>
       </Router>
     </>
