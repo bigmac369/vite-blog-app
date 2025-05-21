@@ -4,6 +4,7 @@ import SignupForm from "./pages/Signup";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import CreatePost from "./pages/CreatePost";
+import EditPost from "./pages/EditPost";
 import SingleBlog from "./pages/SingleBlog";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -21,6 +22,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <CreatePost />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/edit-post/:id"
+            element={
+              <ProtectedRoute>
+                <EditPost />
               </ProtectedRoute>
             }
           />

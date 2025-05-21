@@ -1,12 +1,14 @@
 import { Link } from "react-router";
 import { useAppSelector } from "../redux/hooks";
+import { useNavigate } from "react-router";
 
 const BlogPost = ({ post, onDelete }) => {
+  const navigate = useNavigate();
+
   const { user } = useAppSelector((state) => state.user);
 
   const isOwner = user && user.data.user._id === post.author;
   return (
-    // console.log(post),
     <div className="border w-[300px] rounded-xl overflow-hidden">
       <Link to={`/post/${post._id}`}>
         <img
@@ -29,6 +31,7 @@ const BlogPost = ({ post, onDelete }) => {
                   onClick={(e) => {
                     e.stopPropagation(); // stop click from reaching Link
                     // handle edit logic here
+                    navigate(`/edit-post/${post._id}`);
                   }}
                   className="bg-blue-300 text-[0.6rem] rounded-2xl px-3 cursor-pointer"
                 >
