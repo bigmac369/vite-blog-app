@@ -42,11 +42,11 @@ const EditPost = () => {
     fetchPost();
   }, [id]);
 
-//   useEffect(() => {
-//     if (quillRef.current) {
-//       quillRef.current.getEditor().setText(value);
-//     }
-//   }, [value]);
+  //   useEffect(() => {
+  //     if (quillRef.current) {
+  //       quillRef.current.getEditor().setText(value);
+  //     }
+  //   }, [value]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,9 +82,9 @@ const EditPost = () => {
     return <div className="text-center py-10">Loading...</div>;
   }
 
-//   if (error) {
-//     return <div className="text-center py-10 text-red-600">{error}</div>;
-//   }
+  if (error) {
+    return <div className="text-center py-10 text-red-600">{error}</div>;
+  }
 
   return (
     <div className="p-6 min-h-screen flex flex-col">

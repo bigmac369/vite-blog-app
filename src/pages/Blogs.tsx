@@ -1,7 +1,7 @@
 import BlogPost from "../components/BlogPost";
 import SearchBlog from "../components/SearchBlog";
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+
 import axios from "axios";
 
 const Blogs = () => {

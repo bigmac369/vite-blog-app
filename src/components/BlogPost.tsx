@@ -7,7 +7,7 @@ const BlogPost = ({ post, onDelete }) => {
 
   const { user } = useAppSelector((state) => state.user);
 
-  const isOwner = user && user.data.user._id === post.author;
+  const isOwner = user && user._id === post.author;
   return (
     <div className="border w-[300px] rounded-xl overflow-hidden">
       <Link to={`/post/${post._id}`}>

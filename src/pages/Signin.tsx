@@ -47,12 +47,15 @@ const SigninForm = () => {
           },
         }
       );
-      console.log("Response data:", response.data);
-      // localStorage.setItem("token", response.data.data.token);
-      dispatch(loginSuccess(response.data));
+
+      const userData = response.data.data.user;
+      console.log("User data:", userData);
+
+      dispatch(loginSuccess(userData));
+
       navigate("/");
 
-      console.log("Signin success:", response.data.data.user);
+      console.log("Signin success:", userData);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || error.message;

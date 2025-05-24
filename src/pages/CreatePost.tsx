@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
-import axios from "axios";
+// import axios from "axios";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import api from "../api/axiosSetup";
 
 const CreatePost = () => {
   const [title, setTitle] = useState("");
@@ -35,7 +36,7 @@ const CreatePost = () => {
       };
       // console.log("Request Config:", config);
 
-      const res = await axios.post(
+      const res = await api.post(
         "http://localhost:5000/api/v1/posts",
         data,
         config
