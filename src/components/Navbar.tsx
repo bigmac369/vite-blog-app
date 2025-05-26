@@ -10,7 +10,7 @@ const Navbar = () => {
   const navigate = useNavigate();
 
   const user = useAppSelector((state) => state.user.user);
-  console.log(user);
+  // console.log(user);
 
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -71,6 +71,7 @@ const Navbar = () => {
                 <Link
                   to="/profile"
                   className="block px-4 py-2 hover:bg-gray-100"
+                  onClick={() => setShowDropdown(false)}
                 >
                   Profile
                 </Link>

@@ -6,6 +6,7 @@ import Home from "./pages/Home";
 import CreatePost from "./pages/CreatePost";
 import EditPost from "./pages/EditPost";
 import SingleBlog from "./pages/SingleBlog";
+import UserProfile from "./pages/UserProfile";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -34,6 +35,14 @@ function App() {
             }
           />
           {/* <Route path="/create" element={<CreatePost />} /> */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/post/:id" element={<SingleBlog />} />
           <Route path="*" element={<p>There's nothing here: 404!</p>} />
         </Routes>
