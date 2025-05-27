@@ -1,14 +1,32 @@
 import { Link } from "react-router";
 import { useAppSelector } from "../redux/hooks";
 import { useNavigate } from "react-router";
+import { formatDistanceToNow, format, differenceInDays } from "date-fns";
 
 const BlogPost = ({ post, onDelete }) => {
-  //  
+  console.log(post);
   const navigate = useNavigate();
 
   const { user } = useAppSelector((state) => state.user);
 
-  const isOwner = user && user._id === post.author;
+  const isOwner = user && user._id === post.author._id;
+
+  const createdAt = new Date(post.createdAt);
+  // const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
+
+  console.log(createdAt);
+
+  const formatPostTime = (dateCreated) => {
+    const createdDate = new Date(dateCreated);
+    const daysDifference = differenceInDays(new Date(), createdDate);
+
+    if (daysDifference < 7) {
+      return formatDistanceToNow(createdDate, { addSuffix: true });
+    } else {
+      return format(createdDate, "MMM d, yyyy");
+    }
+  };
+
   return (
     <div className="border w-[300px] rounded-xl overflow-hidden flex flex-col">
       <Link to={`/post/${post._id}`}>
@@ -59,7 +77,7 @@ const BlogPost = ({ post, onDelete }) => {
           />
           <div className="ml-3">
             <p className="font-medium">{post.author.name}</p>
-            <p className="font-light">2h ago</p>
+            <p className="font-light">{formatPostTime(createdAt)}</p>
           </div>
         </div>
       </div>
