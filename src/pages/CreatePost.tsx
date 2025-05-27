@@ -42,8 +42,9 @@ const CreatePost = () => {
         config
       );
       console.log("Post created successfully:", res);
+      setTitle(""); // Clear the title input after successful submission
+      setSummary(""); // Clear the summary input after successful submission
       setValue(""); // Clear the editor after successful submission
-      
     } catch (error) {
       console.error("Error creating post:", error);
     }

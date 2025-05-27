@@ -6,6 +6,7 @@ import axios from "axios";
 
 const Blogs = () => {
   const [posts, setPosts] = useState([]);
+  
 
   const handleDeletePost = async (postId) => {
     try {

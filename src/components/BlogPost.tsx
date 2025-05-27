@@ -3,13 +3,14 @@ import { useAppSelector } from "../redux/hooks";
 import { useNavigate } from "react-router";
 
 const BlogPost = ({ post, onDelete }) => {
+  //  
   const navigate = useNavigate();
 
   const { user } = useAppSelector((state) => state.user);
 
   const isOwner = user && user._id === post.author;
   return (
-    <div className="border w-[300px] rounded-xl overflow-hidden">
+    <div className="border w-[300px] rounded-xl overflow-hidden flex flex-col">
       <Link to={`/post/${post._id}`}>
         <img
           className="w-full h-[150px]"
@@ -18,7 +19,7 @@ const BlogPost = ({ post, onDelete }) => {
         />
       </Link>
 
-      <div className="content-div p-4 bg-white">
+      <div className="content-div p-4 bg-white h-full flex flex-col justify-between">
         <div className="">
           <div className="flex justify-between ">
             <h2 className="bg-blue-200 rounded-2xl inline-block p-1 px-2 text-[0.6rem] mb-2">
@@ -50,14 +51,14 @@ const BlogPost = ({ post, onDelete }) => {
           <h1 className="font-bold mb-4">{post.title}</h1>
           <p className="text-sm">{post.summary}</p>
         </div>
-        <div className="mt-10 flex items-center">
+        <div className="mt-5 flex items-center">
           <img
             className="h-10 w-10 rounded-full "
             src="https://images.pexels.com/photos/1704488/pexels-photo-1704488.jpeg?cs=srgb&dl=pexels-sulimansallehi-1704488.jpg&fm=jpg"
             alt=""
           />
           <div className="ml-3">
-            <p className="font-medium">Kanna Chan</p>
+            <p className="font-medium">{post.author.name}</p>
             <p className="font-light">2h ago</p>
           </div>
         </div>

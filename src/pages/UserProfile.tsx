@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from "react";
 import { Link } from "react-router";
 import axios from "axios";
 import { updateUser } from "../features/user/userSlice";
+import UserProfilePost from "../components/UserProfilePost";
 
 const UserProfile = () => {
   //state.user = {user: {...}, loading: false. error: null}
@@ -20,9 +21,31 @@ const UserProfile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const [userPosts, setUserPosts] = useState([]); // Assuming you might want to fetch user posts later
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Fetch user posts if needed
+    const fetchUserPosts = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/api/v1/posts/user/${userId}`,
+          { withCredentials: true }
+        );
+        console.log("User Posts:", res.data);
+        setUserPosts(res.data);
+      } catch (error) {
+        console.error("Error fetching user posts:", error);
+      }
+    };
+
+    if (userId) {
+      fetchUserPosts();
+    }
+  }, [userId]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -51,6 +74,7 @@ const UserProfile = () => {
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value);
   };
+
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
   };
@@ -111,6 +135,21 @@ const UserProfile = () => {
     } catch (err) {
       // handle error
       console.error("Error updating password:", err);
+    }
+  };
+
+  // Function to handle post deletion
+  const handleDeletePost = async (postId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/v1/posts/${postId}`, {
+        withCredentials: true,
+      });
+      setUserPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
+    } catch (error) {
+      console.error(
+        "Failed to delete post:",
+        error.response?.data?.message || error.message
+      );
     }
   };
 
@@ -175,36 +214,15 @@ const UserProfile = () => {
               Create New Post
             </Link>
           </div>
+          {userPosts.length > 0 ? (
+            userPosts.map((post) => (
+              <UserProfilePost key={post._id} post={post} onDelete={handleDeletePost} />
+            ))
+          ) : (
+            <p className="text-gray-500">You have no posts yet.</p>
+          )}
 
-          <div className="postContainer">
-            {/* Post 1 */}
-            <div className="post-item border border-[#eee] p-5 rounded-sm">
-              <div className="post-header flex justify-between mb-2">
-                <div>
-                  <h3 className="post-title font-bold text-xl">
-                    Getting started with React Hooks
-                  </h3>
-                  <div className="post-date text-[#7f8c8d]">
-                    Published on March 15, 2024
-                  </div>
-                </div>
-                <div className="post-action flex justify-center items-center gap-3">
-                  <button className="bg-[#3498DB] text-white px-2 rounded-sm cursor-pointer">
-                    Edit
-                  </button>
-                  <button className="bg-[#E74C3C] text-white px-2 rounded-sm cursor-pointer">
-                    Delete
-                  </button>
-                </div>
-              </div>
-              <div className="post-excerpt bg-[#F8F9FA] p-3.5 border-l-4 border-l-[#3498db]">
-                React Hooks have revolutionized the way we write React
-                components. In this comprehensive guide, we'll explore the most
-                commonly used hooks and how to implement them effectively in
-                your applications...
-              </div>
-            </div>
-          </div>
+          {/* Add more UserProfilePost components as needed */}
         </div>
       </div>
       {/* Reset Password Modal  */}
