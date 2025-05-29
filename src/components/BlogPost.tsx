@@ -4,7 +4,6 @@ import { useNavigate } from "react-router";
 import { formatDistanceToNow, format, differenceInDays } from "date-fns";
 
 const BlogPost = ({ post, onDelete }) => {
-  console.log(post);
   const navigate = useNavigate();
 
   const { user } = useAppSelector((state) => state.user);
@@ -13,8 +12,6 @@ const BlogPost = ({ post, onDelete }) => {
 
   const createdAt = new Date(post.createdAt);
   // const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
-
-  console.log(createdAt);
 
   const formatPostTime = (dateCreated) => {
     const createdDate = new Date(dateCreated);

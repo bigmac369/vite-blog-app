@@ -8,7 +8,7 @@ const UserProfilePost = ({ post, onDelete }) => {
     <div className="postContainer">
       <Link
         to={`/post/${post._id}`}
-        className="post-item border border-[#eee] p-5 rounded-sm block"
+        className="post-item border border-[#eee] p-5 rounded-sm block mb-3"
       >
         <div className="post-header flex justify-between mb-2">
           <div>

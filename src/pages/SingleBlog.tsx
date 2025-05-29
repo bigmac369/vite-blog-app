@@ -1,10 +1,18 @@
 import { useParams } from "react-router";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useAppSelector } from "../redux/hooks";
 
 const SingleBlog = () => {
   const { id } = useParams(); // assuming you're using react-router
+  console.log(id);
+  const user = useAppSelector((state) => state.user);
+  console.log(user);
   const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState("");
+
+  console.log(comments);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -22,6 +30,50 @@ const SingleBlog = () => {
     };
     fetchPost();
   }, [id]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/v1/comments/post/${id}`,
+          {
+            withCredentials: true,
+          }
+        );
+        console.log(response.data);
+        setComments(response.data);
+      } catch (error) {
+        console.error("Error fetching comments:", error);
+      }
+    };
+    fetchComments();
+  }, [id]);
+
+  const handleAddComment = async () => {
+    if (!commentText.trim()) {
+      alert("Comment cannot be empty");
+      return;
+    }
+
+    try {
+      //localhost:5000/api/v1/comments
+      const response = await axios.post(
+        `http://localhost:5000/api/v1/comments/createComment`,
+        {
+          text: commentText,
+          author: user.user?._id, // Replace with actual author data
+          postId: id, // Post ID to which the comment belongs
+        },
+        { withCredentials: true }
+      );
+      console.log(response);
+      setComments([...comments, response.data]);
+      
+      setCommentText("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
+  };
 
   return (
     <div className="page-container max-w-3xl mx-auto p-6 min-h-screen">
@@ -57,31 +109,38 @@ const SingleBlog = () => {
               className="border border-gray-300 rounded-lg min-h-[100px] p-3 w-full"
               name=""
               id=""
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
             ></textarea>
           </div>
-          <button className="bg-blue-500 hover:bg-blue-600 px-4 py-2 text-white transition-colors rounded cursor-pointer">
+          <button
+            className="bg-blue-500 hover:bg-blue-600 px-4 py-2 text-white transition-colors rounded cursor-pointer"
+            onClick={handleAddComment}
+          >
             Add Comment
           </button>
         </div>
         {/* Example Comment */}
         <div className="comment-list-container">
-          <div className="comment-item bg-[#F9FAFB] p-2 rounded">
-            <div className="comment-content flex justify-between mb-2">
-              <div className="author-date-div">
-                <p className="font-medium">Author name</p>
-                <p className="text-sm text-gray-500">Date</p>
+          {comments.map((comment) => (
+            <div key={comment._id} className="comment-item bg-[#F9FAFB] p-2 rounded">
+              <div className="comment-content flex justify-between mb-2">
+                <div className="author-date-div">
+                  <p className="font-medium">Author name</p>
+                  <p className="text-sm text-gray-500">Date</p>
+                </div>
+                <div className="edit_delete-div flex gap-2 items-start">
+                  <button className="text-blue-700 cursor-pointer">Edit</button>
+                  <button className="text-red-700 cursor-pointer">
+                    Delete
+                  </button>
+                </div>
               </div>
-              <div className="edit_delete-div flex gap-2 items-start">
-                <button className="text-blue-700 cursor-pointer">Edit</button>
-                <button className="text-red-700 cursor-pointer">Delete</button>
-              </div>
+              <p>
+                {comment.text}
+              </p>
             </div>
-            <p>
-              Great article! The examples really helped me understand hooks
-              better. I've been struggling with useEffect dependencies, and your
-              explanation cleared things up.
-            </p>
-          </div>
+          ))}
         </div>
       </div>
     </div>
