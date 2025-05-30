@@ -1,18 +1,28 @@
 import { useParams } from "react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { useAppSelector } from "../redux/hooks";
+import Comment from "../components/Comment";
 
+interface CommentType {
+  _id: string;
+  text: string;
+  author: string; // Replace 'any' with your actual author type if available
+  postId: string;
+  // Add other fields as needed
+}
 const SingleBlog = () => {
   const { id } = useParams(); // assuming you're using react-router
-  console.log(id);
-  const user = useAppSelector((state) => state.user);
-  console.log(user);
+  // console.log(id);
+
+  // console.log(user);
   const [post, setPost] = useState(null);
-  const [comments, setComments] = useState([]);
+
+  const [comments, setComments] = useState<CommentType[]>([]);
   const [commentText, setCommentText] = useState("");
 
-  console.log(comments);
+  // console.log(comments);
+
+  const newCommentRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -29,7 +39,7 @@ const SingleBlog = () => {
       }
     };
     fetchPost();
-  }, [id]);
+  }, [id]); //only refetch when id change, means view another post
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -40,7 +50,7 @@ const SingleBlog = () => {
             withCredentials: true,
           }
         );
-        console.log(response.data);
+
         setComments(response.data);
       } catch (error) {
         console.error("Error fetching comments:", error);
@@ -56,24 +66,66 @@ const SingleBlog = () => {
     }
 
     try {
-      //localhost:5000/api/v1/comments
+      
       const response = await axios.post(
         `http://localhost:5000/api/v1/comments/createComment`,
         {
           text: commentText,
-          author: user.user?._id, // Replace with actual author data
+          // author: user.user?._id, //stop sending author from the frontend
           postId: id, // Post ID to which the comment belongs
         },
         { withCredentials: true }
       );
       console.log(response);
-      setComments([...comments, response.data]);
-      
+
+      setComments((prevComments) => [...prevComments, response.data]);
+
+      setTimeout(() => {
+        newCommentRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100); // Delay for rendering to complete
+
       setCommentText("");
     } catch (error) {
       console.error("Error adding comment:", error);
     }
   };
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/v1/comments/${commentId}`,
+        { withCredentials: true }
+      );
+      setComments((prevComments) =>
+        prevComments.filter((comment) => comment._id !== commentId)
+      );
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+    } 
+  }
+
+  const handleEditComment = async (commentId: string, newText: string) => {
+    if (!newText.trim()) {
+      alert("Comment cannot be empty");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/v1/comments/${commentId}`,
+        { text: newText },
+        { withCredentials: true }
+      );
+      console.log(comments)
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === commentId ? response.data : comment
+        )
+      );
+    } catch (error) {
+      console.error("Error editing comment:", error);
+    }
+  }
 
   return (
     <div className="page-container max-w-3xl mx-auto p-6 min-h-screen">
@@ -107,6 +159,7 @@ const SingleBlog = () => {
           <div className="mb-4">
             <textarea
               className="border border-gray-300 rounded-lg min-h-[100px] p-3 w-full"
+              placeholder="Add a comment..."
               name=""
               id=""
               value={commentText}
@@ -122,24 +175,14 @@ const SingleBlog = () => {
         </div>
         {/* Example Comment */}
         <div className="comment-list-container">
-          {comments.map((comment) => (
-            <div key={comment._id} className="comment-item bg-[#F9FAFB] p-2 rounded">
-              <div className="comment-content flex justify-between mb-2">
-                <div className="author-date-div">
-                  <p className="font-medium">Author name</p>
-                  <p className="text-sm text-gray-500">Date</p>
-                </div>
-                <div className="edit_delete-div flex gap-2 items-start">
-                  <button className="text-blue-700 cursor-pointer">Edit</button>
-                  <button className="text-red-700 cursor-pointer">
-                    Delete
-                  </button>
-                </div>
-              </div>
-              <p>
-                {comment.text}
-              </p>
-            </div>
+          {comments.map((comment, index) => (
+            <Comment
+              key={comment._id}
+              comment={comment}
+              ref={index === comments.length - 1 ? newCommentRef : null}
+              onDelete={handleDeleteComment}
+              onEdit={handleEditComment}
+            />
           ))}
         </div>
       </div>
