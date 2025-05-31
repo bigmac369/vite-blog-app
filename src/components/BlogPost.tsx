@@ -64,7 +64,7 @@ const BlogPost = ({ post, onDelete }) => {
           </div>
 
           <h1 className="font-bold mb-4">{post.title}</h1>
-          <p className="text-sm">{post.summary}</p>
+          <p className="text-sm break-words">{post.summary}</p>
         </div>
         <div className="mt-5 flex items-center">
           <img
