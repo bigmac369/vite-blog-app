@@ -78,6 +78,23 @@ const EditPost = () => {
     }
   };
 
+  const handleDeletePost = async () => {
+  const confirmDelete = window.confirm("Are you sure you want to delete this post?");
+  if (!confirmDelete) return;
+
+  try {
+    await axios.delete(`http://localhost:5000/api/v1/posts/${id}`, {
+      withCredentials: true, // send cookies
+    });
+
+    console.log("Post deleted successfully");
+    navigate("/profile"); // or wherever you want to redirect after delete
+  } catch (err) {
+    console.error("Failed to delete post:", err);
+    alert("Something went wrong while deleting the post.");
+  }
+};
+
   if (loading) {
     return <div className="text-center py-10">Loading...</div>;
   }
@@ -88,7 +105,10 @@ const EditPost = () => {
 
   return (
     <div className="p-6 min-h-screen flex flex-col">
-      <h1 className="text-2xl font-bold mb-6">Edit Post</h1>
+      <div className="flex justify-between items-start">
+        <h1 className="text-2xl font-bold mb-6">Edit Post</h1>
+        <button onClick={handleDeletePost} className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors cursor-pointer">Delete</button>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <input

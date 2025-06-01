@@ -21,10 +21,10 @@ const SingleBlog = () => {
 
   // console.log(user);
   const [post, setPost] = useState(null);
-  console.log(user.user)
-  console.log(post)
+  console.log(user.user);
+  console.log(post);
   const isOwner = user.user && user.user._id === post?.author._id;
-  
+
   const [comments, setComments] = useState<CommentType[]>([]);
   const numberOfComments = comments.length;
   const [commentText, setCommentText] = useState("");
@@ -162,7 +162,20 @@ const SingleBlog = () => {
         <div className="title-summary-container flex">
           <div>
             <h1 className="text-3xl font-bold mb-2">{post?.title}</h1>
-            <p className="text-gray-500 mb-6 italic break-all">{post?.summary}</p>
+            <p
+              // style={
+              //   {
+              //     wordWrap: "break-word",
+              //     wordBreak: "break-word",
+              //     overflowWrap: "break-word",
+              //     maxWidth: "100%",
+              //     whiteSpace: "pre-wrap",
+              //   }
+              // }
+              className="text-gray-500 mb-6 italic [word-break:break-word]"
+            >
+              {post?.summary}
+            </p>
           </div>
           {isOwner && (
             <div className="flex items-start gap-4 ml-auto">

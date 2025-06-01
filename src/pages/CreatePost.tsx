@@ -54,14 +54,14 @@ const CreatePost = () => {
     <div className="p-6 min-h-screen flex flex-col ">
       <form className="" onSubmit={handleSubmit}>
         <input
-          className="bg-amber-200 w-full mb-5 px-2 py-2 border-1 rounded-sm"
+          className="bg-gray-200 w-full mb-5 px-2 py-2 border-1 rounded-sm"
           type="text"
           placeholder="Title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
         />
         <input
-          className="bg-amber-200 w-full mb-5 px-2 py-2 border-1 rounded-sm"
+          className="bg-gray-200 w-full mb-5 px-2 py-2 border-1 rounded-sm"
           type="text"
           placeholder="Summary"
           value={summary}
@@ -70,7 +70,7 @@ const CreatePost = () => {
 
         <ReactQuill
           ref={quillRef}
-          className="h-full bg-blue-100 mb-5"
+          className="bg-blue-100 mb-5"
           theme="snow"
           value={value}
           onChange={(newValue) => setValue(newValue)}
