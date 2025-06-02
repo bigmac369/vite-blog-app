@@ -17,7 +17,7 @@ const UserProfilePost = ({ post, onDelete }) => {
               Published on {new Date(createdAt).toLocaleDateString()}
             </div>
           </div>
-          <div className="post-action flex justify-center items-center gap-3">
+          <div className="post-action flex justify-center items-start gap-3">
             <button
               onClick={(e) => {
                 e.preventDefault(); // prevent default link behavior
@@ -41,7 +41,7 @@ const UserProfilePost = ({ post, onDelete }) => {
             </button>
           </div>
         </div>
-        <div className="post-excerpt bg-[#F8F9FA] p-3.5 border-l-4 border-l-[#3498db]">
+        <div className="post-excerpt bg-[#F8F9FA] p-3.5 border-l-4 border-l-[#3498db] break-words">
           {summary}
         </div>
       </Link>

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { formatDistanceToNow, format, differenceInDays } from "date-fns";
 
 const BlogPost = ({ post, onDelete }) => {
+  console.log(post);
   const navigate = useNavigate();
 
   const { user } = useAppSelector((state) => state.user);
@@ -29,7 +30,11 @@ const BlogPost = ({ post, onDelete }) => {
       <Link to={`/post/${post._id}`}>
         <img
           className="w-full h-[150px]"
-          src="https://media.istockphoto.com/id/471926619/photo/moraine-lake-at-sunrise-banff-national-park-canada.jpg?s=612x612&w=0&k=20&c=mujiCtVk5QA697SD3d8V8BGmd91-8HlxCNHkolEA0Bo="
+          src={
+            post.imageurl?.trim()
+              ? post.imageurl
+              : "https://media.istockphoto.com/id/471926619/photo/moraine-lake-at-sunrise-banff-national-park-canada.jpg?s=612x612&w=0&k=20&c=mujiCtVk5QA697SD3d8V8BGmd91-8HlxCNHkolEA0Bo="
+          }
           alt=""
         />
       </Link>
