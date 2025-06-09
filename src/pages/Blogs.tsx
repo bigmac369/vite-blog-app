@@ -6,7 +6,6 @@ import axios from "axios";
 
 const Blogs = () => {
   const [posts, setPosts] = useState([]);
-  
 
   const handleDeletePost = async (postId) => {
     try {
@@ -45,9 +44,9 @@ const Blogs = () => {
     fetchPosts();
   }, []);
   return (
-    <div className="mt-6 bg-amber-500 container">
+    <div className="mt-6 bg-amber-500 container mx-auto px-4">
       <SearchBlog />
-      <div className="flex flex-wrap gap-5 justify-center ">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
         {/* <BlogPost />
         <BlogPost />
         <BlogPost />

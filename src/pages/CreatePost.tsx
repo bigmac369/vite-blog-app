@@ -1,31 +1,55 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import api from "../api/axiosSetup";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase"; // Adjust the import path as necessary
 
+import { FieldValues, useForm } from "react-hook-form";
+
 const CreatePost = () => {
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-  const [value, setValue] = useState("");
-  const [image, setImage] = useState<File | null>(null);
+  // const [image, setImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   const [uploadProgress, setUploadProgress] = useState<string>("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+    reset,
+    watch,
+    // getValues,
+  } = useForm();
 
   const quillRef = useRef<ReactQuill | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Watch the image input to update the preview
+  const watchImage = watch("image");
 
+  useEffect(() => {
+    const file = watchImage?.[0];
+    if (file) {
+      setPreviewImage(URL.createObjectURL(file));
+    } else {
+      setPreviewImage(null);
+    }
+  }, [watchImage]);
+
+  const onSubmit = async (data: FieldValues) => {
     // Get plain text (no <p> or formatting)
+    setIsLoading(true);
+    const { title, summary } = data;
+
     const plainText = quillRef.current
       ? quillRef.current.getEditor().getText().trim()
       : "";
 
     try {
-      const data = {
+      const postData = {
         title,
         summary,
         content: plainText,
@@ -36,7 +60,7 @@ const CreatePost = () => {
 
       const res = await api.post(
         "http://localhost:5000/api/v1/posts",
-        data,
+        postData,
         config
       );
       console.log("Post created successfully:", res);
@@ -44,11 +68,12 @@ const CreatePost = () => {
       const postId = res.data._id;
 
       // Step 2: Upload image to Firebase if exists
-      if (image && postId) {
+      const imageFile = data.image?.[0];
+      if (imageFile && postId) {
         setUploadProgress("Uploading image...");
 
-        const storageRef = ref(storage, `posts/${postId}-${image.name}`);
-        const snapshot = await uploadBytes(storageRef, image);
+        const storageRef = ref(storage, `posts/${postId}-${imageFile.name}`);
+        const snapshot = await uploadBytes(storageRef, imageFile);
         const imageUrl = await getDownloadURL(snapshot.ref);
 
         setUploadProgress("Updating post with image...");
@@ -62,9 +87,9 @@ const CreatePost = () => {
 
         console.log("Image uploaded and post updated successfully");
       }
-      setTitle(""); // Clear the title input after successful submission
-      setSummary(""); // Clear the summary input after successful submission
-      setValue(""); // Clear the editor after successful submission
+      reset(); // Reset form fields
+      quillRef.current?.getEditor().setText("");
+      navigate(`/post/${postId}`); // Redirect to posts page
     } catch (error) {
       console.error("Error creating post:", error);
       setUploadProgress("Error creating post. Please try again.");
@@ -75,45 +100,67 @@ const CreatePost = () => {
     }
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
-    if (file) {
-      setImage(file);
-      setPreviewImage(URL.createObjectURL(file));
-    } else {
-      setImage(null);
-      setPreviewImage(null);
-    }
-  };
+  // const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files ? e.target.files[0] : null;
+  //   if (file) {
+  //     setValue("image", file, {shouldValidate: true});
+  //     setPreviewImage(URL.createObjectURL(file));
+  //   } else {
+  //     setValue("image", null, {shouldValidate: true});
+  //     setPreviewImage(null);
+  //   }
+  //   await trigger("image"); // Trigger validation for the image field
+  // };
 
   return (
     <div className="p-6 min-h-screen flex flex-col ">
-      <form className="" onSubmit={handleSubmit}>
+      <form className="" onSubmit={handleSubmit(onSubmit)}>
         <input
-          className="bg-gray-200 w-full mb-5 px-2 py-2 border-1 rounded-sm"
+          {...register("title", {
+            required: "Title is required",
+            minLength: {
+              value: 5,
+              message: "Title must be at least 5 characters",
+            },
+          })}
+          className="bg-gray-200 w-full mb-2 px-2 py-2 border-1 rounded-sm"
           type="text"
           placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          disabled={isLoading}
+          disabled={isSubmitting}
         />
+        {errors.title && (
+          <p className="text-red-500 mb-2">{`${errors.title.message}`}</p>
+        )}
         <input
+          {...register("summary", {
+            required: "Summary is required",
+            minLength: {
+              value: 10,
+              message: "Summary must be at least 10 characters",
+            },
+          })}
           className="bg-gray-200 w-full mb-5 px-2 py-2 border-1 rounded-sm"
           type="text"
           placeholder="Summary"
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-          disabled={isLoading}
+          disabled={isSubmitting}
         />
+        {errors.summary && (
+          <p className="text-red-500 mb-2">{`${errors.summary.message}`}</p>
+        )}
 
         {/* Image upload input */}
         <input
+          {...register("image", {
+            required: "Image is required",
+          })}
           type="file"
           accept="image/*"
-          onChange={handleImageChange}
           className="mb-5"
-          disabled={isLoading}
+          disabled={isSubmitting}
         />
+        {errors.image && (
+          <p className="text-red-500 mb-2">{`${errors.image.message}`}</p>
+        )}
         {previewImage && (
           <img
             src={previewImage}
@@ -126,9 +173,8 @@ const CreatePost = () => {
           ref={quillRef}
           className="bg-blue-100 mb-5"
           theme="snow"
-          value={value}
-          onChange={(newValue) => setValue(newValue)}
           placeholder="Write your post here..."
+          onChange={(content) => setValue("content", content)}
         />
 
         {/* Progress indicator */}
@@ -137,8 +183,21 @@ const CreatePost = () => {
             {uploadProgress}
           </div>
         )}
-        <button className="bg-black text-white w-full py-4 rounded-sm hover:cursor-pointer">
-          Create Post
+        <button
+          className={`w-full py-4 rounded-sm ${
+            isSubmitting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-black text-white hover:bg-gray-800 cursor-pointer"
+          }`}
+          disabled={isSubmitting || isLoading}
+        >
+          {isLoading ? (
+            <>
+              <span className="spinner" /> Creating Post
+            </>
+          ) : (
+            "Create Post"
+          )}
         </button>
       </form>
     </div>

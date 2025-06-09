@@ -5,3 +5,19 @@
     max-height: 200px;
     overflow-y: scroll;
 }
+
+.spinner {
+  border: 2px solid transparent;
+  border-top: 2px solid white; /* or black, depending on your button color */
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

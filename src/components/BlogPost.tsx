@@ -4,16 +4,11 @@ import { useNavigate } from "react-router";
 import { formatDistanceToNow, format, differenceInDays } from "date-fns";
 
 const BlogPost = ({ post, onDelete }) => {
-  console.log(post);
   const navigate = useNavigate();
-
   const { user } = useAppSelector((state) => state.user);
-
   const isOwner = user && user._id === post.author._id;
 
   const createdAt = new Date(post.createdAt);
-  // const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
-
   const formatPostTime = (dateCreated) => {
     const createdDate = new Date(dateCreated);
     const daysDifference = differenceInDays(new Date(), createdDate);
@@ -25,23 +20,32 @@ const BlogPost = ({ post, onDelete }) => {
     }
   };
 
-  return (
-    <div className="border w-[300px] rounded-xl overflow-hidden flex flex-col">
-      <Link to={`/post/${post._id}`}>
-        <img
-          className="w-full h-[150px]"
-          src={
-            post.imageurl?.trim()
-              ? post.imageurl
-              : "https://media.istockphoto.com/id/471926619/photo/moraine-lake-at-sunrise-banff-national-park-canada.jpg?s=612x612&w=0&k=20&c=mujiCtVk5QA697SD3d8V8BGmd91-8HlxCNHkolEA0Bo="
-          }
-          alt=""
-        />
-      </Link>
+  const truncateText = (text, maxLength) => {
+    if (!text) return "";
+    return text.length > maxLength
+      ? text.slice(0, maxLength).trimEnd() + "..."
+      : text;
+  };
 
-      <div className="content-div p-4 bg-white h-full flex flex-col justify-between">
-        <div className="">
-          <div className="flex justify-between ">
+  return (
+    <div className="border w-full rounded overflow-hidden flex flex-col">
+      <div className="">
+        <Link to={`/post/${post._id}`}>
+          <img
+            className="w-full h-48 object-cover"
+            src={
+              post.imageurl?.trim()
+                ? post.imageurl
+                : "https://media.istockphoto.com/id/471926619/photo/moraine-lake-at-sunrise-banff-national-park-canada.jpg?s=612x612&w=0&k=20&c=mujiCtVk5QA697SD3d8V8BGmd91-8HlxCNHkolEA0Bo="
+            }
+            alt=""
+          />
+        </Link>
+      </div>
+
+      <div className="content-div p-4 bg-white h-full flex flex-col">
+        <div className="mb-auto">
+          <div className="flex justify-between">
             <h2 className="bg-blue-200 rounded-2xl inline-block p-1 px-2 text-[0.6rem] mb-2">
               TECHNOLOGY
             </h2>
@@ -68,8 +72,11 @@ const BlogPost = ({ post, onDelete }) => {
             )}
           </div>
 
-          <h1 className="font-bold mb-4">{post.title}</h1>
-          <p className="text-sm break-words">{post.summary}</p>
+          <h1 className="font-bold mb-4"> {truncateText(post.title, 60)}</h1>
+          <p className="text-sm break-words">
+            {" "}
+            {truncateText(post.summary, 60)}
+          </p>
         </div>
         <div className="mt-5 flex items-center">
           <img

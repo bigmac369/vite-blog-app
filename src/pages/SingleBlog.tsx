@@ -22,7 +22,7 @@ const SingleBlog = () => {
   // console.log(user);
   const [post, setPost] = useState(null);
   console.log(user.user);
-  console.log(post);
+  console.log(post?.imageurl);
   const isOwner = user.user && user.user._id === post?.author._id;
 
   const [comments, setComments] = useState<CommentType[]>([]);
@@ -198,6 +198,16 @@ const SingleBlog = () => {
             </div>
           )}
         </div>
+
+        {post?.imageurl && (
+          <div className="featured-image-container mb-6">
+            <img
+              src={post?.imageurl}
+              alt={post.title}
+              className="w-full h-64 md:h-80 object-cover rounded-lg shadow-md"
+            />
+          </div>
+        )}
 
         <hr className="mb-6" />
         <div className="prose prose-lg prose-slate">
