@@ -6,19 +6,26 @@ import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
+import { FieldValues, useForm } from "react-hook-form";
 
 const EditPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-  const [value, setValue] = useState("");
-  const [image, setImage] = useState<File | null>(null);
+  // const [image, setImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+    reset,
+    watch,
+    // getValues,
+  } = useForm();
 
   const quillRef = useRef<ReactQuill | null>(null);
 
@@ -35,9 +42,12 @@ const EditPost = () => {
         );
         console.log("Fetched post:", response.data);
 
-        setTitle(response.data.title);
-        setSummary(response.data.summary);
-        setValue(response.data.content);
+        reset({
+          title: response.data.title,
+          summary: response.data.summary,
+          content: response.data.content,
+        });
+        console.log(response.data.imageurl)
         setPreviewImage(response.data.imageurl || null);
         setLoading(false);
       } catch (err) {
@@ -48,30 +58,42 @@ const EditPost = () => {
     };
 
     fetchPost();
-  }, [id]);
+  }, [id, reset]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
+  // Watch the image input to update the preview
+  const watchImage = watch("image");
+
+  useEffect(() => {
+    const file = watchImage?.[0];
     if (file) {
-      setImage(file);
       setPreviewImage(URL.createObjectURL(file));
     } else {
-      setImage(null);
-      setPreviewImage(null);
+      // setPreviewImage();
     }
-  };
+  }, [watchImage]);
 
-  const handleUpdate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files ? e.target.files[0] : null;
+  //   if (file) {
+  //     setImage(file);
+  //     setPreviewImage(URL.createObjectURL(file));
+  //   } else {
+  //     setImage(null);
+  //     setPreviewImage(null);
+  //   }
+  // };
+
+  const handleUpdate = async (data: FieldValues) => {
     setLoading(true);
     // Get plain text (no <p> or formatting)
+    const { title, summary } = data;
 
     try {
       const plainText = quillRef.current
         ? quillRef.current.getEditor().getText().trim()
         : "";
 
-      const data = {
+      const updateData = {
         title,
         summary,
         content: plainText,
@@ -81,13 +103,18 @@ const EditPost = () => {
         withCredentials: true, // Ensure cookies are sent with the request
       };
 
-      await api.put(`http://localhost:5000/api/v1/posts/${id}`, data, config);
+      await api.put(
+        `http://localhost:5000/api/v1/posts/${id}`,
+        updateData,
+        config
+      );
 
-      if (image) {
+      const imageFile = data.image?.[0];
+      if (imageFile) {
         setUploadProgress("Uploading new image...");
 
-        const storageRef = ref(storage, `posts/${id}-${image.name}`);
-        const snapshot = await uploadBytes(storageRef, image);
+        const storageRef = ref(storage, `posts/${id}-${imageFile.name}`);
+        const snapshot = await uploadBytes(storageRef, imageFile);
         const imageUrl = await getDownloadURL(snapshot.ref);
 
         setUploadProgress("Updating post with image...");
@@ -151,31 +178,54 @@ const EditPost = () => {
         </button>
       </div>
 
-      <form onSubmit={handleUpdate}>
+      <form onSubmit={handleSubmit(handleUpdate)}>
         <input
+          {...register("title", {
+            required: "Title is required",
+            minLength: {
+              value: 5,
+              message: "Title must be at least 5 characters",
+            },
+          })}
           className="bg-amber-200 w-full mb-5 px-2 py-2 border-1 rounded-sm"
           type="text"
           placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          disabled={isSubmitting}
         />
+        {errors.title && (
+          <p className="text-red-500 mb-2">{`${errors.title.message}`}</p>
+        )}
 
         <input
+          {...register("summary", {
+            required: "Summary is required",
+            minLength: {
+              value: 10,
+              message: "Summary must be at least 10 characters",
+            },
+          })}
           className="bg-amber-200 w-full mb-5 px-2 py-2 border-1 rounded-sm"
           type="text"
           placeholder="Summary"
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
+          disabled={isSubmitting}
         />
+        {errors.summary && (
+          <p className="text-red-500 mb-2">{`${errors.summary.message}`}</p>
+        )}
 
         {/* Image upload input */}
         <input
+          {...register("image", {
+            required: "Image is required",
+          })}
           type="file"
           accept="image/*"
-          onChange={handleImageChange}
           className="mb-5"
           disabled={loading}
         />
+        {errors.image && (
+          <p className="text-red-500 mb-2">{`${errors.image.message}`}</p>
+        )}
         {previewImage && (
           <img
             src={previewImage}
@@ -188,9 +238,9 @@ const EditPost = () => {
           ref={quillRef}
           className="h-full bg-blue-100 mb-5"
           theme="snow"
-          value={value}
-          onChange={(newValue) => setValue(newValue)}
           placeholder="Write your post here..."
+          onChange={(content) => setValue("content", content)}
+          value={watch("content") || ""}
         />
 
         {/* Progress indicator */}
