@@ -8,6 +8,18 @@ import { storage } from "../firebase"; // Adjust the import path as necessary
 
 import { FieldValues, useForm } from "react-hook-form";
 
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const postSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters"),
+  summary: z.string().min(10, "Summary must be at least 10 characters"),
+  content: z.string().min(1, "Content cannot be empty"),
+  image: z.instanceof(FileList).refine((files) => files && files.length > 0, {
+    message: "Image is required",
+  }),
+});
+
 const CreatePost = () => {
   // const [image, setImage] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -23,7 +35,7 @@ const CreatePost = () => {
     reset,
     watch,
     // getValues,
-  } = useForm();
+  } = useForm({ resolver: zodResolver(postSchema) });
 
   const quillRef = useRef<ReactQuill | null>(null);
 
@@ -38,6 +50,16 @@ const CreatePost = () => {
       setPreviewImage(null);
     }
   }, [watchImage]);
+
+  useEffect(() => {
+    register("content", {
+      required: "Content is required",
+      validate: (value) => {
+        const plainText = quillRef.current?.getEditor().getText().trim() || "";
+        return plainText.length > 0 || "Content cannot be empty";
+      },
+    });
+  }, [register]);
 
   const onSubmit = async (data: FieldValues) => {
     // Get plain text (no <p> or formatting)
@@ -174,8 +196,13 @@ const CreatePost = () => {
           className="bg-blue-100 mb-5"
           theme="snow"
           placeholder="Write your post here..."
-          onChange={(content) => setValue("content", content)}
+          onChange={(content) =>
+            setValue("content", content, { shouldValidate: true })
+          }
         />
+        {errors.content && (
+          <p className="text-red-500 mb-2">{`${errors.content.message}`}</p>
+        )}
 
         {/* Progress indicator */}
         {uploadProgress && (

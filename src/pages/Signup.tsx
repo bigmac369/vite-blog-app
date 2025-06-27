@@ -1,26 +1,29 @@
-import { useState } from "react";
 import axios from "axios";
 
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+const signupSchema = z.object({
+  username: z.string().min(3, "Username is required"),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+type SignupFormData = z.infer<typeof signupSchema>;
+
 const SignupForm = () => {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+  });
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value);
-  };
-
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: SignupFormData) => {
     // Handle signup logic here, e.g., send data to the server
+    const { username, email, password } = data;
     try {
       const response = await axios.post(
         "http://localhost:5000/api/v1/auth/sign-up",
@@ -39,8 +42,8 @@ const SignupForm = () => {
   return (
     <div className="min-h-screen bg-amber-50 flex items-center justify-center">
       <form
-        className="bg-white border w-[400px] h-[400px]"
-        onSubmit={handleSubmit}
+        className="bg-white border w-[400px] "
+        onSubmit={handleSubmit(onSubmit)}
       >
         <div className="flex flex-col items-center justify-center h-full">
           <h1 className="text-2xl font-bold mb-4">Signup</h1>
@@ -52,9 +55,11 @@ const SignupForm = () => {
             type="text"
             placeholder="Enter username"
             className="border p-2 mb-4 w-[80%]"
-            value={username}
-            onChange={handleUsernameChange}
+            {...register("username")}
           />
+          {errors.username && (
+            <p className="text-red-500 text-xs ">{errors.username.message}</p>
+          )}
           <label className="mr-70 mb-1" htmlFor="email">
             Email
           </label>
@@ -63,9 +68,11 @@ const SignupForm = () => {
             type="email"
             placeholder="Enter email"
             className="border p-2 mb-4 w-[80%]"
-            value={email}
-            onChange={handleEmailChange}
+            {...register("email")}
           />
+          {errors.email && (
+            <p className="text-red-500">{errors.email.message}</p>
+          )}
           <label className="mr-63 mb-1" htmlFor="password">
             Password
           </label>
@@ -74,9 +81,11 @@ const SignupForm = () => {
             type="password"
             placeholder="Password"
             className="border p-2 mb-4 w-[80%]"
-            value={password}
-            onChange={handlePasswordChange}
+            {...register("password")}
           />
+          {errors.password && (
+            <p className="text-red-500">{errors.password.message}</p>
+          )}
           <button className="bg-blue-500 text-white p-2 rounded w-[80%]">
             Sign Up
           </button>

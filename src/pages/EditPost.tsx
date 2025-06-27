@@ -8,6 +8,21 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "../firebase";
 import { FieldValues, useForm } from "react-hook-form";
 
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const postSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters"),
+  summary: z.string().min(10, "Summary must be at least 10 characters"),
+  content: z.string().min(1, "Content cannot be empty"),
+  image: z
+    .any()
+    .optional()
+    .refine((files) => !files || files.length <= 1, {
+      message: "Image is required",
+    }),
+});
+
 const EditPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -25,7 +40,7 @@ const EditPost = () => {
     reset,
     watch,
     // getValues,
-  } = useForm();
+  } = useForm({ resolver: zodResolver(postSchema) });
 
   const quillRef = useRef<ReactQuill | null>(null);
 
@@ -47,7 +62,7 @@ const EditPost = () => {
           summary: response.data.summary,
           content: response.data.content,
         });
-        console.log(response.data.imageurl)
+        console.log(response.data.imageurl);
         setPreviewImage(response.data.imageurl || null);
         setLoading(false);
       } catch (err) {
@@ -215,9 +230,7 @@ const EditPost = () => {
 
         {/* Image upload input */}
         <input
-          {...register("image", {
-            required: "Image is required",
-          })}
+          {...register("image")}
           type="file"
           accept="image/*"
           className="mb-5"
