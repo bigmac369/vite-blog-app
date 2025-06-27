@@ -5,6 +5,34 @@ import axios from "axios";
 import { updateUser } from "../features/user/userSlice";
 import UserProfilePost from "../components/UserProfilePost";
 
+import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+
+const updateUserProfileSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters long"),
+  email: z.string().email("Invalid email address"),
+});
+
+type UserProfileFormData = z.infer<typeof updateUserProfileSchema>;
+
+const updatePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z
+      .string()
+      .min(8, "New password must be at least 8 characters"),
+    confirmPassword: z
+      .string()
+      .min(8, "Confirm password must be at least 8 characters"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "New password and confirm password must match",
+  });
+
+type UpdatePasswordFormData = z.infer<typeof updatePasswordSchema>;
+
 const UserProfile = () => {
   //state.user = {user: {...}, loading: false. error: null}
   const user = useAppSelector((state) => state.user.user);
@@ -15,11 +43,32 @@ const UserProfile = () => {
   const userId = user?._id;
   console.log("User ID:", userId);
 
-  const [username, setUsername] = useState(user?.name || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UserProfileFormData>({
+    resolver: zodResolver(updateUserProfileSchema),
+    defaultValues: {
+      username: user?.name || "",
+      email: user?.email || "",
+    },
+  });
+
+  const {
+    register: registerPassword,
+    handleSubmit: handlePasswordSubmit,
+    formState: { errors: passwordErrors },
+    reset: resetPassword,
+  } = useForm<UpdatePasswordFormData>({
+    resolver: zodResolver(updatePasswordSchema),
+  });
+
+  // const [username, setUsername] = useState(user?.name || "");
+  // const [email, setEmail] = useState(user?.email || "");
+  // const [password, setPassword] = useState("");
+  // const [newPassword, setNewPassword] = useState("");
+  // const [confirmPassword, setConfirmPassword] = useState("");
 
   const [userPosts, setUserPosts] = useState([]); // Assuming you might want to fetch user posts later
 
@@ -69,19 +118,19 @@ const UserProfile = () => {
     };
   }, [isModalOpen, setIsModalOpen]);
 
-  console.log("User Profile:", username);
+  // console.log("User Profile:", username);
 
-  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value);
-  };
+  // const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setUsername(e.target.value);
+  // };
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
+  // const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setEmail(e.target.value);
+  // };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onUserProfileSubmit = async (data: UserProfileFormData) => {
     // Here you would typically dispatch an action to update the user profile
+    const { username, email } = data;
     try {
       const data = {
         username,
@@ -110,11 +159,12 @@ const UserProfile = () => {
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onHandlePasswordSubmit = async (data: UpdatePasswordFormData) => {
+    const { currentPassword, newPassword, confirmPassword } = data;
+
     try {
       const data = {
-        password,
+        currentPassword,
         newPassword,
         confirmPassword,
       };
@@ -129,9 +179,7 @@ const UserProfile = () => {
       console.log("Password updated successfully:", res.data);
       setIsModalOpen(false);
       // Optionally, you can reset the password fields
-      setPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      resetPassword();
     } catch (err) {
       // handle error
       console.error("Error updating password:", err);
@@ -144,7 +192,9 @@ const UserProfile = () => {
       await axios.delete(`http://localhost:5000/api/v1/posts/${postId}`, {
         withCredentials: true,
       });
-      setUserPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
+      setUserPosts((prevPosts) =>
+        prevPosts.filter((post) => post._id !== postId)
+      );
     } catch (error) {
       console.error(
         "Failed to delete post:",
@@ -167,7 +217,7 @@ const UserProfile = () => {
             </button>
           </div>
           {/* username and email form */}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onUserProfileSubmit)}>
             <div className="form-row flex justify-between gap-5">
               <div className="form-group flex-1 mb-5">
                 <label className="block" htmlFor="username">
@@ -177,11 +227,14 @@ const UserProfile = () => {
                   className="w-full border-2 border-[#ddd] rounded-sm p-3 text-sm"
                   type="text"
                   id="username"
-                  name="username"
-                  value={username}
-                  onChange={handleUsernameChange}
+                  {...register("username")}
                   placeholder="Enter your name"
                 />
+                {errors.username && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.username.message}
+                  </p>
+                )}
               </div>
               <div className="form-group flex-1 mb-5">
                 <label className="block" htmlFor="email">
@@ -191,11 +244,14 @@ const UserProfile = () => {
                   className="w-full border-2 border-[#ddd] rounded-sm p-3 text-sm"
                   type="email"
                   id="email"
-                  name="email"
-                  value={email}
-                  onChange={handleEmailChange}
+                  {...register("email")}
                   placeholder="Enter your email"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
             </div>
             <button className="bg-[#3498DB] px-4 py-1 rounded-sm text-white cursor-pointer">
@@ -216,7 +272,11 @@ const UserProfile = () => {
           </div>
           {userPosts.length > 0 ? (
             userPosts.map((post) => (
-              <UserProfilePost key={post._id} post={post} onDelete={handleDeletePost} />
+              <UserProfilePost
+                key={post._id}
+                post={post}
+                onDelete={handleDeletePost}
+              />
             ))
           ) : (
             <p className="text-gray-500">You have no posts yet.</p>
@@ -246,7 +306,10 @@ const UserProfile = () => {
                   &times;
                 </button>
               </div>
-              <form id="passwordForm" onSubmit={handlePasswordSubmit}>
+              <form
+                id="passwordForm"
+                onSubmit={handlePasswordSubmit(onHandlePasswordSubmit)}
+              >
                 <div className="form-group mb-5">
                   <label className="block mb-1" htmlFor="currentPassword">
                     Current Password
@@ -254,13 +317,16 @@ const UserProfile = () => {
 
                   <input
                     className="w-full border-2 border-[#ddd] rounded-sm p-3 text-sm"
-                    type="text"
+                    type="password"
                     id="currentPassword"
-                    name="currentPassword"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    {...registerPassword("currentPassword")}
                     required
                   />
+                  {passwordErrors.currentPassword && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {passwordErrors.currentPassword.message}
+                    </p>
+                  )}
                 </div>
                 <div className="form-group mb-5">
                   <label className="block mb-1" htmlFor="newPassword">
@@ -268,13 +334,16 @@ const UserProfile = () => {
                   </label>
                   <input
                     className="w-full border-2 border-[#ddd] rounded-sm p-3 text-sm"
-                    type="tex"
+                    type="password"
                     id="newPassword"
-                    name="newPassword"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
+                    {...registerPassword("newPassword")}
                     required
                   />
+                  {passwordErrors.newPassword && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {passwordErrors.newPassword.message}
+                    </p>
+                  )}
                 </div>
                 <div className="form-group mb-5">
                   <label className="block mb-1" htmlFor="confirmPassword">
@@ -282,13 +351,16 @@ const UserProfile = () => {
                   </label>
                   <input
                     className="w-full border-2 border-[#ddd] rounded-sm p-3 text-sm"
-                    type="text"
+                    type="password"
                     id="confirmPassword"
-                    name="confirmPassword"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    {...registerPassword("confirmPassword")}
                     required
                   />
+                  {passwordErrors.confirmPassword && (
+                    <p className="text-red-500 text-xs mt-1">
+                      {passwordErrors.confirmPassword.message}
+                    </p>
+                  )}
                 </div>
                 {/* style="display: flex; gap: 10px; justify-content: flex-end;" */}
                 <div className="flex justify-end gap-3">
